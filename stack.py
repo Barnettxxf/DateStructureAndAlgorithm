@@ -61,6 +61,7 @@ class LStack(object):
 Application example
 example one: checking brackets is in pair or not in a text;
 example two: realization of simple calculation expression recognition
+example three: bag problem
 """
 
 
@@ -193,3 +194,6 @@ def test_trans_infix_sufix(s):
     print(s)
     print(trans_infix_sufix(s))
     print("Value: ", suf_exp_evaluator(trans_infix_sufix(s)))
+
+
+# Example three
