@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from DateStructureAndAlgorithm.queue import PrioQueueError
+from DateStructureAndAlgorithm.queue import PrioQueueError, SQueue
+from DateStructureAndAlgorithm.stack import SStack
 
 __author__ = 'barnett'
 
@@ -77,3 +78,134 @@ def heap_sort(elems):
         e = elems[i]
         elems[i] = elems[0]
         siftdown(elems, e, 0, i)
+
+
+class BinTNode(object):
+    def __init__(self, dat, left=None, right=None):
+        self.data = dat
+        self.left = left
+        self.right = right
+
+
+class BinTree(object):
+    def __init__(self):
+        self._root = None
+
+    def is_empty(self):
+        return self._root is None
+
+    def root(self):
+        return self._root
+
+    def leftchild(self):
+        return self._root.left
+
+    def rigthchile(self):
+        return self._root.right
+
+    def set_root(self, rootnode):
+        self._root = rootnode
+
+    def sef_left(self, leftchild):
+        self._root.left = leftchild
+
+    def set_right(self, rightchild):
+        self._root.right = rightchild
+
+    def preorder_elements(self):
+        t, s = self._root, SStack()
+        while t is not None or not s.is_empty():
+            while t is not None:
+                s.push(t.right)
+                yield t.data
+                t = t.left
+            t = s.pop()
+
+
+def counts(t):
+    """ count bintree nodes """
+    if t is None:
+        return 0
+    else:
+        return 1 + counts(t.left) + counts(t.right)
+
+
+def sum(t):
+    """ sum all values in bintree """
+    if t is None:
+        return 0
+    else:
+        return t.data + sum(t.left) + sum(t.right)
+
+
+def preorder(t, proc):
+    if not callable(proc):
+        raise ValueError('proc must be a function')
+
+    if t is None:
+        return
+    proc(t.data)
+    preorder(t.left, proc)
+    preorder(t.right, proc)
+
+
+def preorder_nonrec(t, proc):
+    if not callable(proc):
+        raise ValueError('proc must be a function')
+
+    s = SStack()
+    while t is not None and not s.is_empty():
+        while t is not None:
+            proc(t.data)
+            if t.right is not None:
+                s.push(t.right)
+            t = t.left
+        t = s.pop()
+
+
+def postorder_nonrec(t, proc):
+    if not callable(proc):
+        raise ValueError('proc must be a function')
+
+    s = SStack()
+    while t is not None or not s.is_empty():
+        while t is not None:
+            s.push(t)
+            t = t.left if t.left is not None else t.right
+
+        t = s.pop()
+        proc(t.data)
+        if not s.is_empty() and s.top().left == t:
+            t = s.top().right
+        else:
+            t = None
+
+
+def print_bintree(t):
+    if t is None:
+        print('^', end='')
+        return
+    print('(' + str(t.data), end='')
+    print_bintree(t.left)
+    print_bintree(t.right)
+    print(')', end='')
+
+
+def levelorder(t, proc):
+    if not callable(proc):
+        raise ValueError('proc must be a function')
+
+    qu = SQueue()
+    qu.enqueue(t)
+    while not qu.is_empty():
+        n = qu.dequeue()
+        if n is not None:
+            continue
+        qu.enqueue(t.left)
+        qu.enqueue(t.right)
+        proc(t.data)
+
+
+if __name__ == '__main__':
+    t = BinTNode(1, BinTNode(2, BinTNode(5)), BinTNode(3))
+    print_bintree(t)
