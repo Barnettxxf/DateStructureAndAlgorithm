@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from DateStructureAndAlgorithm.bintree import PrioQueue
 from DateStructureAndAlgorithm.stack import SStack
 
 __author__ = 'barnett'
@@ -101,6 +102,7 @@ class GraphAL(Graph):
 
 
 def DFS_graph(graph, v0):
+    """ Depth-First Search graph """
     vnum = graph.vertex_num()
     visited = [0] * vnum
     visited[v0] = 1
@@ -111,8 +113,68 @@ def DFS_graph(graph, v0):
         i, edges = st.pop()
         if i < len(edges):
             v, e = edges[i]
-            st.push((i+1, edges))
+            st.push((i + 1, edges))
             if not visited[v]:
                 DFS_seq.append(v)
                 st.push((0, graph.out_edge(v)))
     return DFS_seq
+
+
+def DFS_span_forest(graph):
+    """ spanning tree """
+    vnum = graph.vertex_num()
+    span_forest = [None] * vnum
+
+    def dfs(graph, v):
+        nonlocal span_forest
+        for u, w in graph.out_edge(v):
+            if span_forest[u] is None:
+                span_forest[u] = (v, w)
+                dfs(graph, v)
+
+    for v in range(vnum):
+        if span_forest[v] is None:
+            span_forest[v] = (v, 0)
+            dfs(graph, v)
+
+    return span_forest
+
+
+def kruskal(graph):
+    """ obtain min spanning tree using Kruskal Algorithm """
+
+    vnum = graph.vertex_num()
+    reps = [i for i in range(vnum)]
+    mst, edges = [], []
+
+    for vi in range(vnum):
+        for v, w in graph.out_edge(vi):
+            edges.append((w, vi, v))
+    edges.sort()
+    for w, vi, vj in edges:
+        if reps[vi] !=reps[vj]:
+            mst.append(((vi, vj), w))
+            if len(mst) == vnum - 1:
+                break
+            rep, orep = reps[vi], reps[vj]
+            for i in range(vnum):
+                if reps[i] == orep:
+                    reps[i] = rep
+
+
+def prim(graph):
+    """ obtain min spanning tree using Prim Algorithm """
+    vnum = graph.vertex_num()
+    mst = [None] * vnum
+    cands = PrioQueue([(0, 0, 0)])                      # recording candidate edges
+    count = 0
+    while count < vnum and not cands.is_empty():
+        w, u, v = cands.dequeue()                       # obtain current min edge
+        if mst[v]:
+            continue
+        mst[v] = ((u, v), w)                            # recording new MST edge and point
+        count += 1
+        for vi, w in graph.out_edge(v):                 # v's neighbouring point vi
+            if not mst[vi]:                             # if vi not in mst, it must be in candidate set
+                cands.enqueue((w, v, vi))
+    return mst
