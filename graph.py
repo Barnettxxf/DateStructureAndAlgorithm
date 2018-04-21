@@ -4,6 +4,8 @@ from DateStructureAndAlgorithm.stack import SStack
 
 __author__ = 'barnett'
 
+inf = float('inf')
+
 
 class GraphError(Exception):
     pass
@@ -152,7 +154,7 @@ def kruskal(graph):
             edges.append((w, vi, v))
     edges.sort()
     for w, vi, vj in edges:
-        if reps[vi] !=reps[vj]:
+        if reps[vi] != reps[vj]:
             mst.append(((vi, vj), w))
             if len(mst) == vnum - 1:
                 break
@@ -166,15 +168,116 @@ def prim(graph):
     """ obtain min spanning tree using Prim Algorithm """
     vnum = graph.vertex_num()
     mst = [None] * vnum
-    cands = PrioQueue([(0, 0, 0)])                      # recording candidate edges
+    cands = PrioQueue([(0, 0, 0)])  # recording candidate edges
     count = 0
     while count < vnum and not cands.is_empty():
-        w, u, v = cands.dequeue()                       # obtain current min edge
+        w, u, v = cands.dequeue()  # obtain current min edge
         if mst[v]:
             continue
-        mst[v] = ((u, v), w)                            # recording new MST edge and point
+        mst[v] = ((u, v), w)  # recording new MST edge and point
         count += 1
-        for vi, w in graph.out_edge(v):                 # v's neighbouring point vi
-            if not mst[vi]:                             # if vi not in mst, it must be in candidate set
+        for vi, w in graph.out_edge(v):  # v's neighbouring point vi
+            if not mst[vi]:  # if vi not in mst, it must be in candidate set
                 cands.enqueue((w, v, vi))
     return mst
+
+
+def dijkstra_shortest_paths(graph, v0):
+    """ obtain shortest paths in graph using Dijkstra Algorithm """
+
+    vnum = graph.vertex_num()
+    assert 0 <= v0 < vnum
+    paths = [None] * vnum
+    count = 0
+    cands = PrioQueue()
+    while count < vnum and not cands.is_empty():
+        plen, u, vmin = cands.dequeue()
+        if paths[vmin]:
+            continue
+        paths[vmin] = (u, plen)
+        for v, w in graph.out_edge(vmin):
+            if not paths[v]:
+                cands.enqueue((plen + w, vmin, v))
+        count += 1
+    return paths
+
+
+def all_shortest_paths(graph):
+    """ obtain all shortest paths in graph using Floyd Algorithm """
+
+    vnum = graph.vertex_num()
+    a = [[graph.get_edge(i, j) for j in range(vnum)] for i in range(vnum)]
+    nvertex = [[-1 if a[i][j] == inf else j for j in range(vnum)] for i in range(vnum)]
+    for k in range(vnum):
+        for i in range(vnum):
+            for j in range(vnum):
+                if a[i][j] > a[i][k] + a[k][j]:
+                    a[i][j] = a[i][k] + a[k][j]
+                    nvertex[i][j] = nvertex[i][k]
+    return (a, nvertex)
+
+
+def toposort(graph):
+    """ topo sort of graph"""
+
+    vnum = graph.vertex_num()
+    indegree, toposeq = [0] * vnum, []
+    zerov = -1
+    for vi in range(vnum):
+        for v, w in graph.out_edge(vi):
+            indegree[v] += 1
+    for vi in range(vnum):
+        if indegree[vi] == 0:
+            indegree[vi] = zerov
+            zerov = vi
+
+    for n in range(vnum):
+        if zerov == -1:
+            return False
+        vi = zerov
+        zerov = indegree[zerov]
+        toposeq.append(vi)
+        for v, w in graph.out_edge(vi):
+            indegree[vi] -= 1
+            if indegree[v] == 0:
+                indegree[v] = zerov
+                zerov = v
+    return toposeq
+
+
+def critical_paths(graph):
+    """ crirtcla paht of graph """
+
+    def events_eartliest_time(vnum, graph, toposeq):
+        ee = [0] * vnum
+        for i in toposeq:
+            for j, w in graph.out_edge(i):
+                if ee[i] + w > ee[j]:
+                    ee[j] = ee[i] + w
+        return ee
+
+    def events_lastest_time(vnum, graph, toposeq, eelast):
+        le = [eelast] * vnum
+        for k in range(vnum-2, -1, -1):
+            i = toposeq[k]
+            for j, w in graph.out_edge(i):
+                if le[j] -2 < le[i]:
+                    le[i] = le[j] - w
+        return le
+
+    def crt_paths(vnum, graph, ee, le):
+        crt_actions = []
+        for i in range(vnum):
+            for j, w in graph.out_edge(i):
+                if ee[i] == le[j] - w:
+                    crt_actions.append((i, j, ee[i]))
+        return crt_actions
+
+    toposeq = toposort(graph)
+    if not toposeq:
+        return False
+    vnum = graph.vertex_num()
+    ee = events_eartliest_time(vnum, graph, toposeq)
+    le = events_lastest_time(vnum, graph, toposeq, ee[vnum - 1])
+    return crt_paths(vnum, graph, ee, le)
+

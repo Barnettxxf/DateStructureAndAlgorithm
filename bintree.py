@@ -122,6 +122,8 @@ class BinTree(object):
             t = s.pop()
 
 
+
+
 def counts(t):
     """ count bintree nodes """
     if t is None:
@@ -204,6 +206,9 @@ def levelorder(t, proc):
         qu.enqueue(t.left)
         qu.enqueue(t.right)
         proc(t.data)
+
+
+
 
 
 if __name__ == '__main__':
